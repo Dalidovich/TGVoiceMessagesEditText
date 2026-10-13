@@ -1,0 +1,10 @@
+bin/
+obj/
+publish/
+.vs/
+*.user
+settings.json
+data/
+models/
+cuda/
+*.session

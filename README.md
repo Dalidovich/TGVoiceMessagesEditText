@@ -10,9 +10,10 @@
 
 1. Входит в Telegram как пользователь (MTProto, через [WTelegramClient](https://github.com/wiz0u/WTelegramClient)).
 2. Получает обновления о новых сообщениях и выбирает голосовые.
-3. Скачивает аудио и декодирует Ogg/Opus в PCM 16 кГц ([Concentus](https://github.com/lostromb/concentus)).
-4. Распознаёт речь на вашем компьютере через [Whisper.net](https://github.com/sandrohanea/whisper.net) с моделью `ggml-large-v3-turbo`. Аудио не покидает компьютер.
-5. Редактирует сообщение и записывает расшифровку в подпись.
+3. Сразу ставит в подпись `Processing…`, чтобы было видно, что сообщение в работе.
+4. Скачивает аудио и декодирует Ogg/Opus в PCM 16 кГц ([Concentus](https://github.com/lostromb/concentus)).
+5. Распознаёт речь на вашем компьютере через [Whisper.net](https://github.com/sandrohanea/whisper.net) с моделью `ggml-large-v3-turbo`. Аудио не покидает компьютер.
+6. Заменяет подпись `Processing…` на расшифровку. Если распознать ничего не удалось или произошла ошибка, подпись убирается.
 
 ### Какие сообщения обрабатываются
 

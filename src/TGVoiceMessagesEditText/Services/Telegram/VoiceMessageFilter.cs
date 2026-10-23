@@ -12,12 +12,22 @@ public static class VoiceMessageFilter
         }
 
         var isOwn = message.flags.HasFlag(Message.Flags.out_) || peer.user_id == selfId;
-        if (!isOwn || message.fwd_from is not null || !string.IsNullOrEmpty(message.message))
+        if (!isOwn || message.fwd_from is not null || HasRealCaption(message))
         {
             return false;
         }
 
         return utcNow - message.date <= maxAge && GetVoiceDocument(message) is not null;
+    }
+
+    public static bool HasProcessingPlaceholder(Message message)
+    {
+        return message.message == CaptionFormatter.ProcessingPlaceholder;
+    }
+
+    private static bool HasRealCaption(Message message)
+    {
+        return !string.IsNullOrEmpty(message.message) && !HasProcessingPlaceholder(message);
     }
 
     public static Document? GetVoiceDocument(Message message)

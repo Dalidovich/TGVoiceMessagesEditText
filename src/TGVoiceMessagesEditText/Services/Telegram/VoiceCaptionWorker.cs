@@ -113,6 +113,41 @@ public class VoiceCaptionWorker(
             return;
         }
 
+        if (!VoiceMessageFilter.HasProcessingPlaceholder(message))
+        {
+            await client.Messages_EditMessage(peer, message.id, message: CaptionFormatter.ProcessingPlaceholder);
+        }
+
+        string text;
+        double seconds;
+        try
+        {
+            (text, seconds) = await RecognizeAsync(client, message, cancellationToken);
+        }
+        catch
+        {
+            await ClearPlaceholderSafelyAsync(client, peer, message);
+            throw;
+        }
+
+        if (text.Length == 0)
+        {
+            logger.LogInformation("Voice message {MessageId} produced no text", message.id);
+            await ClearPlaceholderSafelyAsync(client, peer, message);
+            return;
+        }
+
+        var caption = CaptionFormatter.Format(text, captionLimit);
+        await client.Messages_EditMessage(peer, message.id, message: caption);
+        logger.LogInformation(
+            "Captioned voice message {MessageId}: {Seconds:F1} s of audio, {Length} characters",
+            message.id,
+            seconds,
+            caption.Length);
+    }
+
+    private async Task<(string Text, double Seconds)> RecognizeAsync(Client client, Message message, CancellationToken cancellationToken)
+    {
         var document = VoiceMessageFilter.GetVoiceDocument(message)!;
         using var audio = new MemoryStream();
         await client.DownloadFileAsync(document, audio);
@@ -136,19 +171,19 @@ public class VoiceCaptionWorker(
         }
 
         var text = await whisper.TranscribeAsync(samples, cancellationToken);
-        if (text.Length == 0)
-        {
-            logger.LogInformation("Voice message {MessageId} produced no text", message.id);
-            return;
-        }
+        return (text, samples.Length / (double)OpusVoiceDecoder.SampleRate);
+    }
 
-        var caption = CaptionFormatter.Format(text, captionLimit);
-        await client.Messages_EditMessage(peer, message.id, message: caption);
-        logger.LogInformation(
-            "Captioned voice message {MessageId}: {Seconds:F1} s of audio, {Length} characters",
-            message.id,
-            samples.Length / (double)OpusVoiceDecoder.SampleRate,
-            caption.Length);
+    private async Task ClearPlaceholderSafelyAsync(Client client, InputPeer peer, Message message)
+    {
+        try
+        {
+            await client.Messages_EditMessage(peer, message.id, message: string.Empty);
+        }
+        catch (Exception exception)
+        {
+            logger.LogWarning(exception, "Failed to remove the processing placeholder from voice message {MessageId}", message.id);
+        }
     }
 
     private void SaveTestRecording(Message message, byte[] original, float[] samples)

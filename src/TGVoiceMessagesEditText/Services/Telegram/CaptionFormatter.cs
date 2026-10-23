@@ -2,6 +2,8 @@ namespace TGVoiceMessagesEditText.Services.Telegram;
 
 public static class CaptionFormatter
 {
+    public const string ProcessingPlaceholder = "Processing…";
+
     private const string Ellipsis = "…";
 
     public static string Format(string text, int maxLength)

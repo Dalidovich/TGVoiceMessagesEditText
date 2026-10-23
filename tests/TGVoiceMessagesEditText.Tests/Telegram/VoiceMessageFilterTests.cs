@@ -63,6 +63,15 @@ public class VoiceMessageFilterTests
     }
 
     [Fact]
+    public void IsCaptionCandidate_AcceptsVoiceWithProcessingPlaceholder()
+    {
+        var message = CreateVoice();
+        message.message = CaptionFormatter.ProcessingPlaceholder;
+
+        Assert.True(VoiceMessageFilter.IsCaptionCandidate(message, SelfId, Now, MaxAge));
+    }
+
+    [Fact]
     public void IsCaptionCandidate_RejectsOldVoice()
     {
         var message = CreateVoice();

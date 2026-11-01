@@ -11,7 +11,7 @@ namespace TGVoiceMessagesEditText.Services.Telegram;
 public class VoiceCaptionWorker(
     AppSettings settings,
     PortablePaths paths,
-    WhisperEngine whisper,
+    ISpeechTranscriber transcriber,
     OpusVoiceDecoder decoder,
     IHostApplicationLifetime lifetime,
     ILogger<VoiceCaptionWorker> logger) : BackgroundService
@@ -40,7 +40,7 @@ public class VoiceCaptionWorker(
 
     private async Task RunAsync(CancellationToken cancellationToken)
     {
-        await whisper.InitializeAsync(cancellationToken);
+        await transcriber.InitializeAsync(cancellationToken);
 
         var writable = paths.TryEnsureWritableDirectory(paths.DataDirectory);
         if (!writable)
@@ -170,8 +170,8 @@ public class VoiceCaptionWorker(
             SaveTestRecording(message, audio.ToArray(), samples);
         }
 
-        var text = await whisper.TranscribeAsync(samples, cancellationToken);
-        return (text, samples.Length / (double)OpusVoiceDecoder.SampleRate);
+        var transcription = await transcriber.TranscribeAsync(samples, cancellationToken);
+        return (transcription.Text, transcription.DurationSeconds);
     }
 
     private async Task ClearPlaceholderSafelyAsync(Client client, InputPeer peer, Message message)

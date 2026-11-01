@@ -10,9 +10,21 @@ public static class WavWriter
 
     public static void Write(string path, float[] samples, int sampleRate)
     {
-        var dataSize = samples.Length * sizeof(short);
         using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-        using var writer = new BinaryWriter(stream, Encoding.ASCII);
+        Write(stream, samples, sampleRate);
+    }
+
+    public static byte[] Encode(float[] samples, int sampleRate)
+    {
+        using var stream = new MemoryStream();
+        Write(stream, samples, sampleRate);
+        return stream.ToArray();
+    }
+
+    private static void Write(Stream stream, float[] samples, int sampleRate)
+    {
+        var dataSize = samples.Length * sizeof(short);
+        using var writer = new BinaryWriter(stream, Encoding.ASCII, true);
 
         writer.Write("RIFF"u8);
         writer.Write(HeaderSize - 8 + dataSize);

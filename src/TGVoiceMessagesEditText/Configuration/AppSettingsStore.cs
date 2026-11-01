@@ -43,6 +43,8 @@ public class AppSettingsStore(PortablePaths paths)
             var settings = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(paths.SettingsFile), SerializerOptions) ?? new AppSettings();
             settings.Telegram ??= new TelegramSettings();
             settings.Speech ??= new SpeechSettings();
+            settings.Speech.Api ??= new ApiSpeechSettings();
+            settings.Speech.Api.Headers ??= [];
             return settings;
         }
         catch (Exception exception) when (exception is JsonException or IOException or UnauthorizedAccessException)

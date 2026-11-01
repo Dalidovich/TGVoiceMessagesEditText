@@ -15,6 +15,7 @@ public class SpeechBackendJsonConverterTests
     [InlineData("\"cpu\"", SpeechBackend.Cpu)]
     [InlineData("\"Vulkan\"", SpeechBackend.Vulkan)]
     [InlineData("\"CUDA\"", SpeechBackend.Cuda)]
+    [InlineData("\"Api\"", SpeechBackend.Api)]
     [InlineData("\"OpenVino\"", SpeechBackend.Vulkan)]
     [InlineData("7", SpeechBackend.Vulkan)]
     public void Read_ParsesKnownValuesAndFallsBackOnUnknown(string json, SpeechBackend expected)

@@ -12,5 +12,7 @@ public class SpeechSettings
 
     public string ModelPath { get; set; } = string.Empty;
 
+    public ApiSpeechSettings Api { get; set; } = new();
+
     public int ResolveCpuThreads() => CpuThreads > 0 ? CpuThreads : Environment.ProcessorCount;
 }

@@ -12,7 +12,7 @@
 2. Получает обновления о новых сообщениях и выбирает голосовые.
 3. Сразу ставит в подпись `Processing…`, чтобы было видно, что сообщение в работе.
 4. Скачивает аудио и декодирует Ogg/Opus в PCM 16 кГц ([Concentus](https://github.com/lostromb/concentus)).
-5. Распознаёт речь на вашем компьютере через [Whisper.net](https://github.com/sandrohanea/whisper.net) с моделью `ggml-large-v3-turbo`. Аудио не покидает компьютер.
+5. Распознаёт речь локально через [Whisper.net](https://github.com/sandrohanea/whisper.net) с моделью `ggml-large-v3-turbo` или передаёт WAV в настроенный HTTP API. Если API недоступен, приложение лениво переключается на локальный backend.
 6. Заменяет подпись `Processing…` на расшифровку. Если распознать ничего не удалось или произошла ошибка, подпись убирается.
 
 ### Какие сообщения обрабатываются
@@ -82,14 +82,44 @@ dotnet test
 | `Telegram.ApiHash` | пусто | Telegram API hash |
 | `Telegram.PhoneNumber` | пусто | Номер телефона в международном формате. Если пусто, запрашивается интерактивно |
 | `Telegram.MaxMessageAgeHours` | `24` | Сообщения старше этого срока игнорируются |
-| `Speech.Backend` | `Vulkan` | `Vulkan`, `Cuda` или `Cpu` |
+| `Speech.Backend` | `Vulkan` | `Vulkan`, `Cuda`, `Cpu` или `Api` |
 | `Speech.GpuName` | `GTX 1660` | Название предпочитаемой видеокарты. Если она не найдена, используется CPU |
 | `Speech.CpuThreads` | `0` | Число потоков CPU. `0` — все ядра |
 | `Speech.Language` | `ru` | Код языка распознавания |
 | `Speech.ModelPath` | пусто | Путь к своей модели ggml. Если пусто, используется `models/ggml-large-v3-turbo.bin` |
+| `Speech.Api` | пусто | Настройки HTTP API, используются только при `Speech.Backend: Api` |
 | `TestMode` | `false` | Сохраняет каждое обработанное голосовое как `.ogg` и `.wav` в `test-recordings/` |
 
 Укажите в `Speech.GpuName` свою видеокарту: значение по умолчанию — карта автора.
+
+Для WhisperAPIHandler добавьте в `settings.json`:
+
+```json
+{
+  "Speech": {
+    "Backend": "Api",
+    "Api": {
+      "Endpoint": "http://127.0.0.1:5080/api/transcriptions",
+      "RequestMethod": "POST",
+      "HealthEndpoint": "http://127.0.0.1:5080/health",
+      "HealthMethod": "GET",
+      "HealthResponseProperty": "status",
+      "HealthResponseValue": "ready",
+      "AudioContentType": "audio/wav",
+      "LanguageParameter": "language",
+      "Language": "auto",
+      "TextResponseProperty": "text",
+      "LanguageResponseProperty": "language",
+      "DurationResponseProperty": "durationSeconds",
+      "BackendResponseProperty": "backend",
+      "TimeoutSeconds": 0,
+      "Headers": {}
+    }
+  }
+}
+```
+
+`TimeoutSeconds: 0` отключает тайм-аут. Пустой `HealthEndpoint` отключает проверку готовности, а пустой `LanguageParameter` не добавляет параметр языка.
 
 ## Примечания
 

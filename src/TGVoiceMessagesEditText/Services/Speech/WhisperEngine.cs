@@ -25,6 +25,12 @@ public sealed partial class WhisperEngine(
         var modelPath = await modelStore.EnsureModelAsync(cancellationToken);
         var backend = settings.Speech.Backend;
         var cpuReason = "CPU backend is configured";
+        if (backend == SpeechBackend.Api)
+        {
+            backend = SpeechBackend.Vulkan;
+            cpuReason = "the transcription API is unavailable";
+        }
+
         if (backend == SpeechBackend.Cuda && await TryLoadCudaRuntimeAsync(cancellationToken) is { } failure)
         {
             backend = SpeechBackend.Cpu;
